@@ -10,6 +10,10 @@ from execution_engine import execute_strategy
 import yfinance as yf
 from pydantic import BaseModel
 import pandas as pd
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from database import get_db
+from models import Strategy
 
 
 class StrategySaveRequest(BaseModel):
@@ -86,20 +90,33 @@ async def run_backtest_endpoint(request: BacktestRequest):
     return results
 
 @app.post("/api/save_strategy")
-async def save_strategy(request: StrategySaveRequest):
+async def save_strategy(request: StrategySaveRequest, db: Session = Depends(get_db)):
     try:
-        # 1. Sanitize filename
+        # 1. Save file to disk (Keep this logic)
         safe_name = request.name.replace(" ", "_").replace(".py", "")
         filename = f"{safe_name}.py"
         file_path = f"strategies/{filename}"
         
-        # 2. Write the EDITED code to the file
         with open(file_path, "w") as f:
             f.write(request.code)
             
-        # 3. (Optional) Save to DB here later
+        # 2. SAVE TO DB (New Logic)
+        # Check if exists to update, else create
+        existing = db.query(Strategy).filter(Strategy.name == safe_name).first()
+        if existing:
+            existing.code = request.code
+        else:
+            new_strat = Strategy(name=safe_name, filename=filename, code=request.code)
+            db.add(new_strat)
         
-        return {"status": "success", "filename": filename, "message": "Strategy saved successfully"}
+        db.commit()
+        
+        return {"status": "success", "message": "Strategy saved to Genome Database"}
         
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/api/strategies")
+def get_strategies(db: Session = Depends(get_db)):
+    return db.query(Strategy).all()
