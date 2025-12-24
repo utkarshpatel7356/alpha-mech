@@ -13,7 +13,7 @@ from models import Strategy
 from vlm_engine import extract_code_from_pdf
 from execution_engine import execute_strategy
 from rl_brain import optimize_strategy  # <--- NEW IMPORT
-# from mab_logic import FairMultiArmedBandit
+from mab_logic import FairMultiArmedBandit
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -141,21 +141,21 @@ async def optimize_stream_endpoint(strategy_id: int, db: Session = Depends(get_d
     )
 
 # 4. FAIRNESS MAB
-# mab_system = FairMultiArmedBandit(n_arms=3)
-# # Pre-train
-# mab_system.update(0, 1)
-# mab_system.update(0, 1)
-# mab_system.update(1, 1)
-# mab_system.update(1, 0)
-# mab_system.update(2, 0)
+mab_system = FairMultiArmedBandit(n_arms=3)
+# Pre-train
+mab_system.update(0, 1)
+mab_system.update(0, 1)
+mab_system.update(1, 1)
+mab_system.update(1, 0)
+mab_system.update(2, 0)
 
-# @app.post("/api/allocate_capital")
-# async def allocate_capital(request: AllocationRequest):
-#     weights = mab_system.calculate_allocation(request.fairness_score)
-#     response_data = [
-#         {"name": "High Frequency", "value": round(weights[0] * 100, 1), "fill": "#ff0055"},
-#         {"name": "Mean Reversion", "value": round(weights[1] * 100, 1), "fill": "#00ccff"},
-#         {"name": "Long Term", "value": round(weights[2] * 100, 1), "fill": "#00ff9d"},
-#     ]
-#     regret_index = request.fairness_score * 0.8 + (3.5) # Simple calc
-#     return {"allocation": response_data, "regret_index": round(regret_index, 1)}
+@app.post("/api/allocate_capital")
+async def allocate_capital(request: AllocationRequest):
+    weights = mab_system.calculate_allocation(request.fairness_score)
+    response_data = [
+        {"name": "High Frequency", "value": round(weights[0] * 100, 1), "fill": "#ff0055"},
+        {"name": "Mean Reversion", "value": round(weights[1] * 100, 1), "fill": "#00ccff"},
+        {"name": "Long Term", "value": round(weights[2] * 100, 1), "fill": "#00ff9d"},
+    ]
+    regret_index = request.fairness_score * 0.8 + (3.5) # Simple calc
+    return {"allocation": response_data, "regret_index": round(regret_index, 1)}

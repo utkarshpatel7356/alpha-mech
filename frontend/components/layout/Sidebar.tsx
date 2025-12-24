@@ -15,6 +15,7 @@ const menuItems = [
   { name: 'Alpha Lab', icon: Beaker, path: '/lab' },
   { name: 'Arena', icon: Swords, path: '/arena' },
   { name: 'Hyper-Chamber', icon: Brain, path: '/brain' },
+  { name: 'Fairness', icon: Brain, path: '/fairness' },
 ];
 
 export default function Sidebar({ isOpen, toggle }: SidebarProps) {
@@ -65,12 +66,12 @@ export default function Sidebar({ isOpen, toggle }: SidebarProps) {
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-800">
+          {/* <div className="p-4 border-t border-gray-800">
             <div className="flex items-center gap-3">
               <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs text-gray-500 font-mono">SYSTEM ONLINE</span>
             </div>
-          </div>
+          </div> */}
         </motion.div>
       )}
     </AnimatePresence>
