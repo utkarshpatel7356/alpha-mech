@@ -25,14 +25,14 @@
 
 ```mermaid
 graph TD
-    User[User] -->|Uploads PDF| FE[Frontend (Next.js)]
-    FE -->|API Request| BE[Backend (FastAPI)]
-    BE -->|OCR & Extraction| VLM[Gemini 1.5 Pro]
-    VLM -->|Generates Code| Strat[Strategy.py]
-    Strat -->|Backtest Data| Engine[Execution Engine]
-    Strat -->|Tuning| RL[RL Optimizer]
-    RL -->|Optimized Params| DB[(SQLite Database)]
-    DB -->|Performance Data| MAB[Fairness Bandit (MAB)]
+    User[User] -->|Uploads PDF| FE["Frontend (Next.js)"]
+    FE -->|API Request| BE["Backend (FastAPI)"]
+    BE -->|OCR & Extraction| VLM["Gemini 1.5 Pro"]
+    VLM -->|Generates Code| Strat["Strategy.py"]
+    Strat -->|Backtest Data| Engine["Execution Engine"]
+    Strat -->|Tuning| RL["RL Optimizer"]
+    RL -->|Optimized Params| DB[("SQLite Database")]
+    DB -->|Performance Data| MAB["Fairness Bandit (MAB)"]
     MAB -->|Capital Allocation| FE
 
 ```
