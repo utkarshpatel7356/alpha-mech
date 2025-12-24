@@ -6,34 +6,32 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "strategies"))
 from strategies.base import BaseStrategy
 
-def execute_strategy(strategy_code: str, df: pd.DataFrame):
+def execute_strategy(strategy_code: str, df: pd.DataFrame, params: dict = None):
     """
-    1. Writes the code to a temporary file.
-    2. Loads it as a module.
-    3. Instantiates 'AlphaStrategy'.
-    4. Runs the backtest.
+    Runs the strategy with OPTIONAL custom parameters (for RL tuning).
     """
-    # 1. Save code to a temp file so we can import it
-    temp_path = "strategies/temp_strategy.py"
+    temp_path = "strategies/temp_strategy_exec.py"
     
-    # We need to add the import line for BaseStrategy to the user's code
-    # because the VLM usually outputs just the class.
+    # 1. Write Code
     final_code = "from strategies.base import BaseStrategy\n" + strategy_code
-    
     with open(temp_path, "w") as f:
         f.write(final_code)
         
     try:
-        # 2. Dynamic Import
-        spec = importlib.util.spec_from_file_location("temp_strategy", temp_path)
+        # 2. Import Module
+        spec = importlib.util.spec_from_file_location("temp_strategy_exec", temp_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         
-        # 3. Instantiate
         if not hasattr(module, 'AlphaStrategy'):
-            return {"error": "Code must contain class 'AlphaStrategy'"}
+            return {"error": "Class 'AlphaStrategy' not found"}
             
-        strategy_instance = module.AlphaStrategy()
+        # 3. Instantiate with Custom Params (The Magic Step)
+        if params:
+            # We unpack the dictionary: AlphaStrategy(short_window=12, long_window=30)
+            strategy_instance = module.AlphaStrategy(**params)
+        else:
+            strategy_instance = module.AlphaStrategy()
         
         # 4. Run Backtest
         results = strategy_instance.run_backtest(df)
