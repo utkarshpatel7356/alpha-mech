@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from database import get_db
 from models import Strategy
-
+from typing import List
 
 class StrategySaveRequest(BaseModel):
     name: str
@@ -24,6 +24,9 @@ class BacktestRequest(BaseModel):
     code: str
     ticker: str = "AAPL" # Default to Apple
 
+class BattleRequest(BaseModel):
+    strategy_ids: List[int]
+    ticker: str = "AAPL"
 
 # Create tables automatically
 Base.metadata.create_all(bind=engine)
@@ -120,3 +123,49 @@ async def save_strategy(request: StrategySaveRequest, db: Session = Depends(get_
 @app.get("/api/strategies")
 def get_strategies(db: Session = Depends(get_db)):
     return db.query(Strategy).all()
+
+@app.post("/api/run_battle")
+async def run_battle_endpoint(request: BattleRequest, db: Session = Depends(get_db)):
+    # 1. Fetch Market Data
+    df = yf.download(request.ticker, period="1y", interval="1d")
+    if df.empty:
+        raise HTTPException(status_code=400, detail="Could not fetch market data")
+    
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    
+    # 2. Calculate Benchmark (Buy & Hold AAPL)
+    # Start at 100 to normalize with strategies
+    df['Market_Return'] = df['Close'].pct_change().fillna(0)
+    df['Benchmark'] = (1 + df['Market_Return']).cumprod() * 100
+
+    dates = df.index.strftime('%Y-%m-%d').tolist()
+    
+    # Initialize Master Data with Date AND Benchmark
+    master_data = []
+    for i, d in enumerate(dates):
+        master_data.append({
+            "date": d,
+            "Benchmark": round(df['Benchmark'].iloc[i], 2) # <--- ADDED THIS
+        })
+
+    # 3. Run Each Strategy
+    for strat_id in request.strategy_ids:
+        strategy_record = db.query(Strategy).filter(Strategy.id == strat_id).first()
+        if not strategy_record:
+            continue
+            
+        result = execute_strategy(strategy_record.code, df.copy())
+        
+        if "error" in result:
+            continue
+            
+        equity_curve = result["equity_curve"]
+        
+        safe_name = strategy_record.name
+        for i, val in enumerate(equity_curve):
+            if i < len(master_data):
+                # Normalized to 100
+                master_data[i][safe_name] = round(val * 100, 2)
+
+    return master_data

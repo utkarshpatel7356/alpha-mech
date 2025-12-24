@@ -139,21 +139,30 @@ export default function Lab() {
 
         {/* Results Popup */}
         {results && (
-            <div className="fixed bottom-10 right-10 glass-panel p-6 rounded-xl animate-in fade-in slide-in-from-bottom-10 z-50 border border-[#00ff9d]/30 shadow-[0_0_30px_rgba(0,255,157,0.1)]">
+            <div className="fixed bottom-10 right-10 p-6 rounded-xl animate-in fade-in slide-in-from-bottom-10 z-50 border border-[#00ff9d]/30 shadow-[0_0_30px_rgba(0,255,157,0.1)] bg-[#0a0a0a] bg-opacity-95 backdrop-blur-xl">
+                {/* CHANGE EXPLANATION:
+                   - Removed 'glass-panel' (which had high transparency).
+                   - Added 'bg-[#0a0a0a]' (almost black).
+                   - Added 'bg-opacity-95' (95% opaque, only 5% transparent).
+                   - Added 'backdrop-blur-xl' (keeps the cool blur effect behind it).
+                */}
+                
                 <div className="flex justify-between items-center mb-4 gap-4">
                     <h3 className="text-[#00ff9d] font-mono text-xl">BACKTEST COMPLETE</h3>
-                    <button onClick={() => setResults(null)} className="text-gray-500 hover:text-white">✕</button>
+                    <button onClick={() => setResults(null)} className="text-gray-500 hover:text-white transition-colors">✕</button>
                 </div>
                 <div className="grid grid-cols-2 gap-8 text-white">
                     <div>
-                        <p className="text-gray-400 text-xs tracking-widest">TOTAL RETURN</p>
+                        <p className="text-gray-400 text-xs tracking-widest uppercase">Total Return</p>
                         <p className={`text-3xl font-bold ${results.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {results.total_return_pct > 0 ? "+" : ""}{results.total_return_pct}%
                         </p>
                     </div>
                     <div>
-                        <p className="text-gray-400 text-xs tracking-widest">SHARPE RATIO</p>
-                        <p className="text-3xl font-bold">{results.sharpe_ratio}</p>
+                        <p className="text-gray-400 text-xs tracking-widest uppercase">Sharpe Ratio</p>
+                        <p className={`text-3xl font-bold ${results.sharpe_ratio >= 1 ? 'text-green-400' : (results.sharpe_ratio > 0 ? 'text-yellow-400' : 'text-red-400')}`}>
+                            {results.sharpe_ratio}
+                        </p>
                     </div>
                 </div>
             </div>
