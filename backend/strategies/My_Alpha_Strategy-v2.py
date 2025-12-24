@@ -1,4 +1,3 @@
-from strategies.base import BaseStrategy
 import pandas as pd
 import numpy as np
 

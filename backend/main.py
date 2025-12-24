@@ -11,6 +11,11 @@ import yfinance as yf
 from pydantic import BaseModel
 import pandas as pd
 
+
+class StrategySaveRequest(BaseModel):
+    name: str
+    code: str
+
 class BacktestRequest(BaseModel):
     code: str
     ticker: str = "AAPL" # Default to Apple
@@ -79,3 +84,22 @@ async def run_backtest_endpoint(request: BacktestRequest):
     results = execute_strategy(request.code, df)
     
     return results
+
+@app.post("/api/save_strategy")
+async def save_strategy(request: StrategySaveRequest):
+    try:
+        # 1. Sanitize filename
+        safe_name = request.name.replace(" ", "_").replace(".py", "")
+        filename = f"{safe_name}.py"
+        file_path = f"strategies/{filename}"
+        
+        # 2. Write the EDITED code to the file
+        with open(file_path, "w") as f:
+            f.write(request.code)
+            
+        # 3. (Optional) Save to DB here later
+        
+        return {"status": "success", "filename": filename, "message": "Strategy saved successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
