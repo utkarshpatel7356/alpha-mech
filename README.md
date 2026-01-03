@@ -17,7 +17,7 @@
 1.  **Extract:** Upload a raw research paper (PDF). The VLM reads the math and generates executable Python code.
 2.  **Optimize:** An RL Agent (Hill Climbing/PPO) runs thousands of simulations to tune parameters (e.g., Stop Loss, Lookback) for the current market regime.
 3.  **Battle:** Strategies compete in the "Arena" against market benchmarks (Buy & Hold).
-4.  **Allocate:** A "Fairness Engine" distributes capital, balancing pure greed (profit) with exploration (fairness) using Dr. Shweta Jain's Bandit algorithms.
+4.  **Allocate:** A "Fairness Engine" distributes capital, balancing pure greed (profit) with exploration (fairness) using Bandit algorithms.
 
 ---
 
